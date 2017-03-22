@@ -17,7 +17,7 @@ import subprocess as sp
 import glob
 import os
 
-import TSeqView
+import DaXView
 
 import sys,pdb
 
@@ -39,11 +39,11 @@ class MovieExporter(Exporter):
         if bgbrush.style() == QtCore.Qt.NoBrush:
             bg.setAlpha(0)
 
-        # Search for TSeqView
+        # Search for DaXView
         wid=self.item.getViewWidget()
-        while wid != None and not isinstance(wid,TSeqView.TSeqView):
+        while wid != None and not isinstance(wid,DaXView.DaXView):
             wid = wid.parent()
-        self.tseqview=wid
+        self.daxview=wid
             
         self.params = Parameter(name='params', type='group', children=[
             {'name': 'width', 'type': 'int', 'value': tr.width(), 'limits': (0, None)},
@@ -69,8 +69,8 @@ class MovieExporter(Exporter):
         return self.params
     
     def export(self, fileName=None, toBytes=False, copy=False):
-        # Can only export video from TSeqView
-        if self.tseqview == None:
+        # Can only export video from DaXView
+        if self.daxview == None:
             return
         # Can only write to video
         if toBytes:
@@ -85,11 +85,11 @@ class MovieExporter(Exporter):
 
         # Play entire sequence and store to temporary PNG files
         progress=QtGui.QProgressDialog('Exporting frames...','Abort',
-                                       0,int(self.tseqview.data.shape[0]*1.1))
-        for i in range(self.tseqview.data.shape[0]):
+                                       0,int(self.daxview.data.shape[0]*1.1))
+        for i in range(self.daxview.data.shape[0]):
             # Set current frame
-            self.tseqview.setCurrentIndex(i)
-            if i>=self.tseqview.data.shape[0]:
+            self.daxview.setCurrentIndex(i)
+            if i>=self.daxview.data.shape[0]:
                 progress.setLabelText('Generating video...')
             # Export to png image
             targetRect = QtCore.QRect(0, 0, self.params['width'], self.params['height'])

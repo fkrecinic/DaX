@@ -16,6 +16,7 @@ import pyqtgraph.parametertree.parameterTypes as pTypes
 from pyqtgraph.parametertree import Parameter, ParameterTree, ParameterItem, registerParameterType
 
 from DaXView import DaXView
+import MovieExporter
 import FitFunctions as ff
 
 
