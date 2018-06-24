@@ -21,8 +21,8 @@ import FitFunctions as ff
 
 
 import sys,pdb
-# QtCore.pyqtRemoveInputHook()
-# pdb.set_trace()
+#QtCore.pyqtRemoveInputHook()
+#pdb.set_trace()
 
 
 # Create main window and qsplitter layout
@@ -147,8 +147,7 @@ def change(param, changes):
                 # Make sure that the load image data setting is NOT restored
                 loadimg=p.child('Load session').child('Load image data').value()
                 # Restore loaded parameters
-                p.restoreState(loaddat['pars'],addChildren=False,
-                               removeChildren=False)
+                p.restoreState(loaddat['pars'],addChildren=False,removeChildren=False)
                 p.child('Load session').child('Load image data').setValue(loadimg)
                 # Load image data (if desired by user) 
                 if prt.child('Load image data').value():

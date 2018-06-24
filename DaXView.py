@@ -101,19 +101,23 @@ class DaXView(pg.ImageView):
         
         # Create fit curve
         self.fitCurve = self.ui.roiPlot.plot()
+        self.fitCurve2D = self.roi2DPlot.plot()
         self.fitdata = []
+        self.roiIntXYcoords= np.zeros(10)
         
         # Set curve symbols and colors        
         self.roiCurve.setPen(pg.mkPen(color='r',width=2))        
         self.roiCurve.setSymbol('o')
         self.roiCurve.setSymbolPen(pg.mkPen(color='r'))
         self.roiCurve.setSymbolBrush(pg.mkBrush(color=pg.mkColor(255,0,0,60)))
-        self.fitCurve.setPen(pg.mkPen(color='b',width=2))        
+        self.fitCurve.setPen(pg.mkPen(color='b',width=2))      
+        
         
         self.roi2DCurve.setPen(pg.mkPen(color='g',width=2))        
         self.roi2DCurve.setSymbol('d')
         self.roi2DCurve.setSymbolPen(pg.mkPen(color='g'))
         self.roi2DCurve.setSymbolBrush(pg.mkBrush(color=pg.mkColor(0,0,255,60)))
+        self.fitCurve2D.setPen(pg.mkPen(color='b',width=2))   
         
         self.looplay=False
         self.playspeed=10
@@ -185,24 +189,39 @@ class DaXView(pg.ImageView):
         if fittype == 'None':
             self.fitCurve.hide()
         else:
-            self.fitdata=ff.funcs[fittype](self.tvals,fitpars)
-            self.fitCurve.setData(y=self.fitdata, x=self.tvals)
-            self.fitCurve.show()
+            if self.roiIntX or self.roiIntY:
+                self.fitdata=ff.funcs[fittype](self.roiIntXYcoords,fitpars)
+                self.fitCurve2D.setData(y=self.fitdata, x=self.roiIntXYcoords)
+                self.fitCurve2D.show()
+            else:
+                self.fitdata=ff.funcs[fittype](self.tvals,fitpars)
+                self.fitCurve.setData(y=self.fitdata, x=self.roiIntXYcoords)
+                self.fitCurve.show()
         
     def fit(self,fittype,fitpars):
         if fittype != 'None':
-            
-            # Gather fit data
-            if self.fitRgn.isVisible():
-                sind,st=self.timeIndex(self.fitRgn.lines[0])
-                eind,et=self.timeIndex(self.fitRgn.lines[1])
-                xdata=self.tvals[sind:eind+1]
-                ydata=self.roi1Ddata[sind:eind+1]
-                if len(xdata) <= len(fitpars):
-                    return fitpars,'Fit range too small: not enough data points.'
+            (ind, time) = self.timeIndex(self.timeLine)
+            if self.roiIntX:
+                if self.roiIntXdata is not None:
+                    self.roiIntXYcoords = np.array(range(len(self.roiIntXdata[0])))*self.scale
+                    xdata=self.roiIntXYcoords
+                    ydata=self.roiIntXdata[ind]
+            elif self.roiIntY:
+                if self.roiIntYdata is not None:
+                    self.roiIntXYcoords = np.array(range(len(self.roiIntYdata[0])))*self.scale
+                    xdata=self.roiIntXYcoords
+                    ydata=self.roiIntYdata[ind]
             else:
-                xdata=self.tvals
-                ydata=self.roi1Ddata
+                if self.fitRgn.isVisible():
+                    sind,st=self.timeIndex(self.fitRgn.lines[0])
+                    eind,et=self.timeIndex(self.fitRgn.lines[1])
+                    xdata=self.tvals[sind:eind+1]
+                    ydata=self.roi1Ddata[sind:eind+1]
+                    if len(xdata) <= len(fitpars):
+                        return fitpars,'Fit range too small: not enough data points.'
+                else:
+                    xdata=self.tvals
+                    ydata=self.roi1Ddata
             fitpars=fitpars[0:ff.funcspnum[fittype]]
             
             # Perform fit
@@ -261,6 +280,8 @@ class DaXView(pg.ImageView):
     
     def roiTypeSelected(self,roitype):
         if roitype == 'Total':
+            self.roiIntX = False
+            self.roiIntY = False
             self.roi2DPlot.hide()
             self.ui.roiBtn.setChecked(True)
             self.ui.roiPlot.setMaximumHeight(60000)
@@ -304,6 +325,8 @@ class DaXView(pg.ImageView):
             (ind, time) = self.timeIndex(self.timeLine)
             self.updateRoi2DPlot(ind,time)            
         else:
+            self.roiIntX = False
+            self.roiIntY = False
             self.roi2DPlot.hide()
             self.ui.roiBtn.setChecked(False)
             self.roiClicked()
