@@ -195,7 +195,7 @@ class DaXView(pg.ImageView):
                 self.fitCurve2D.show()
             else:
                 self.fitdata=ff.funcs[fittype](self.tvals,fitpars)
-                self.fitCurve.setData(y=self.fitdata, x=self.roiIntXYcoords)
+                self.fitCurve.setData(y=self.fitdata, x=self.tvals)
                 self.fitCurve.show()
         
     def fit(self,fittype,fitpars):
