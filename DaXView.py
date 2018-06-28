@@ -94,6 +94,8 @@ class DaXView(pg.ImageView):
         self.data[:,50:60,50:60] += sig
         
         ## Display the data and assign each frame a time value from 1.0 to 3.0
+        self.Tbegin=0.
+        self.DeltaT=10.
         self.tvals=np.linspace(0., 10., self.data.shape[0])
         self.setImage(self.data, xvals=self.tvals)    
         
@@ -142,6 +144,9 @@ class DaXView(pg.ImageView):
             if f.endswith('.bin'):
                 binf.append(f)
         self.dirname=dirname
+        # If there were no readable files found return immediately
+        if binf==[]:
+            return
         # Read in all binary files
         progress=QtGui.QProgressDialog('Reading sequence...','Abort',
                                        0,len(binf))
@@ -153,11 +158,13 @@ class DaXView(pg.ImageView):
                 return
         self.data=np.array(frames)
         self.rawdata=np.copy(self.data)
-        # Check time axis values
+        # Check time axis 
         npts=self.data.shape[0]
         if npts != len(self.tvals):
-            self.setTaxis(self.tvals[0],self.tvals[1]-self.tvals[0])
+            # Update time axis and image data
+            self.setTaxis(self.Tbegin,self.DeltaT)
         else:
+            # Update image data only
             self.setImage(self.data, xvals=self.tvals)
 
     def setSpaceAxis(self,pixsize,mag,hide=False):
@@ -181,6 +188,8 @@ class DaXView(pg.ImageView):
         self.updateRoi2DPlot(ind,time)
 
     def setTaxis(self,tbegin,deltat,unit='None'):
+        self.Tbegin=tbegin
+        self.DeltaT=deltat
         npts=self.data.shape[0]
         self.tvals=np.linspace(tbegin,tbegin+deltat*(npts-1),npts)
         if unit == 'None':
