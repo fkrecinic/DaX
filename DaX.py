@@ -50,7 +50,7 @@ params = [
         {'name': 'Read sequence', 'type': 'action'}
     ]},
     {'name': 'Spatial axes', 'type': 'group', 'children': [
-        {'name': 'Pixel size', 'type': 'float', 'value': 46.54e-3/2048},
+        {'name': 'Pixel size', 'type': 'float', 'value': 60.23e-3/2048},
         {'name': 'Magnification', 'type': 'float', 'value': 1.0},
         {'name': 'Hide axes', 'type': 'bool', 'value': False}
     ]},
