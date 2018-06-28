@@ -53,6 +53,11 @@ class DaXView(pg.ImageView):
         self.roi2DPlot.setLabel('left',text='Intensity (arb.u.)')
         self.roi2DPlot.hide()
         
+        # Add few extra handles to the ROI to make it more line-like
+        self.roi.addScaleRotateHandle([0, 0.5], [1, 0.5])
+        self.roi.addScaleRotateHandle([1, 0.5], [0, 0.5])
+        self.roi.addScaleHandle([0.5, 1], [0.5, 0.5])
+
         self.dirname='/'
         
         self.scale=1.0
