@@ -149,13 +149,17 @@ class DaXView(pg.ImageView):
             return
         # Read in all binary files
         progress=QtGui.QProgressDialog('Reading sequence...','Abort',
-                                       0,len(binf))
+                                       0,len(binf),self)
+        progress.setWindowModality(QtCore.Qt.WindowModal)
+        progress.show()
         frames=[]
         for i in range(len(binf)):
             frames.append(self.readBin(binf[i],width,height))
             progress.setValue(i)
+            QtGui.QApplication.processEvents()
             if progress.wasCanceled():
                 return
+        progress.close()
         self.data=np.array(frames)
         self.rawdata=np.copy(self.data)
         # Check time axis 
