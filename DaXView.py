@@ -163,6 +163,8 @@ class DaXView(pg.ImageView):
         if npts != len(self.tvals):
             # Update time axis and image data
             self.setTaxis(self.Tbegin,self.DeltaT)
+            # Update ROI 
+            self.roiChanged()
         else:
             # Update image data only
             self.setImage(self.data, xvals=self.tvals)
@@ -451,7 +453,7 @@ class DaXView(pg.ImageView):
         n = int(self.playRate * dt)
         if n != 0:
             self.lastPlayTime += (float(n)/self.playRate)
-            if self.currentIndex+n > self.image.shape[0]:
+            if self.currentIndex+n >= self.image.shape[0]:
                 self.play(0)
                 if self.looplay:
                     QtCore.QTimer.singleShot(16,self.replay)
