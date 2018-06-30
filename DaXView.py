@@ -279,24 +279,29 @@ class DaXView(pg.ImageView):
             
     def normalize(self, image):
         if self.normint==False and self.diffimg==False:
-            return image
-            
-        norm = image.view(np.ndarray).copy()
-            
-        if self.normint and image.ndim == 3:
-            n = image.mean(axis=1).mean(axis=1)
-            n.shape = n.shape + (1, 1)
-            norm /= n
-        
-        if self.diffimg and image.ndim == 3:
-            (sind, start) = self.timeIndex(self.diffRgn.lines[0])
-            (eind, end) = self.timeIndex(self.diffRgn.lines[1])
-            #print start, end, sind, eind
-            n = image[sind:eind+1].mean(axis=0)
-            n.shape = (1,) + n.shape
-            norm -= n
-            
-        return norm
+            processimg = image
+        else:
+            processimg = image.view(np.ndarray).copy()
+
+            if self.normint==True:
+                # Calculate mean intensity in each frame
+                n = image.mean(axis=1).mean(axis=1)
+                n.shape = n.shape + (1, 1)
+                # Divide each frame by its mean intensity
+                processimg /= n
+                        
+            if self.diffimg==True:
+                # Get reference image from selected region
+                (sind, start) = self.timeIndex(self.diffRgn.lines[0])
+                (eind, end) = self.timeIndex(self.diffRgn.lines[1])
+                n = processimg[sind:eind+1].mean(axis=0)
+                n.shape = (1,) + n.shape
+                # Return normalized difference image
+                processimg = (processimg-n)/n
+                # Suppress Inf and NaN (otherwise ImageView complains)
+                processimg[np.logical_not(np.isfinite(processimg))]=0.0
+   
+        return processimg
     
     def roiTypeSelected(self,roitype):
         if roitype == 'Total':
