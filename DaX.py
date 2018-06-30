@@ -44,8 +44,8 @@ params = [
     {'name': 'Read data sequence', 'type': 'group', 'children': [
         {'name': 'Directory', 'type': 'str', 'value': "/"},
         {'name': 'Select directory', 'type': 'action'},
-        {'name': 'Image width', 'type': 'int', 'value': 2048},
-        {'name': 'Image height', 'type': 'int', 'value': 2048},
+        {'name': 'Image width', 'type': 'int', 'value': 2048, 'decimals': 6},
+        {'name': 'Image height', 'type': 'int', 'value': 2048, 'decimals': 6},
         {'name': 'Binning','type': 'list', 'values': [1,2,4,8], 'value': 1},
         {'name': 'Read sequence', 'type': 'action'}
     ]},
