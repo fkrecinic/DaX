@@ -63,7 +63,8 @@ params = [
     ]},
     {'name': 'Normalization & differencing', 'type': 'group', 'children': [                                                                           
         {'name': 'Norm. frame intensity', 'type': 'bool', 'value': True},
-        {'name': 'Difference image', 'type': 'bool', 'value': False}
+        {'name': 'Difference image', 'type': 'bool', 'value': False},
+        {'name': 'Relative difference', 'type': 'bool', 'value': False},
     ]},
     {'name': 'ROI', 'type': 'group', 'children': [
         {'name': 'Type', 'type': 'list', 'values': ['None','Total','IntX','IntY','Tot. & IntX'], 
@@ -190,6 +191,7 @@ def change(param, changes):
         if prt.name() == 'Normalization & differencing':
             imv.normint=prt.child('Norm. frame intensity').value()
             imv.diffimg=prt.child('Difference image').value()
+            imv.diffimgrel=prt.child('Relative difference').value()
             imv.normChanged()
 
         if prt.name() == 'ROI':

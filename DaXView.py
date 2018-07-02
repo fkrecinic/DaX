@@ -64,6 +64,7 @@ class DaXView(pg.ImageView):
 
         self.normint=False
         self.diffimg=False     
+        self.diffimgrel=False
         self.diffRgn = pg.LinearRegionItem()
         self.diffRgn.setZValue(0)
         self.diffRgn.setBrush(QtGui.QBrush(QtGui.QColor(255, 0, 0, 50)))
@@ -296,11 +297,15 @@ class DaXView(pg.ImageView):
                 (eind, end) = self.timeIndex(self.diffRgn.lines[1])
                 n = processimg[sind:eind+1].mean(axis=0)
                 n.shape = (1,) + n.shape
-                # Return normalized difference image
-                processimg = (processimg-n)/n
-                # Suppress Inf and NaN (otherwise ImageView complains)
-                processimg[np.logical_not(np.isfinite(processimg))]=0.0
-   
+                if self.diffimgrel:
+                    # Relative difference image
+                    processimg = (processimg-n)/n
+                    # Suppress Inf and NaN (otherwise ImageView complains)
+                    processimg[np.logical_not(np.isfinite(processimg))]=0.0
+                else:
+                    # Absolute difference image
+                    processimg = processimg-n
+    
         return processimg
     
     def roiTypeSelected(self,roitype):
