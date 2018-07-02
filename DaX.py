@@ -69,11 +69,11 @@ params = [
     {'name': 'ROI', 'type': 'group', 'children': [
         {'name': 'Type', 'type': 'list', 'values': ['None','Total','IntX','IntY','Tot. & IntX'], 
                                          'value': 'None'},
-        {'name': 'X', 'type': 'int', 'value': 0},
-        {'name': 'Y', 'type': 'int', 'value': 0},
-        {'name': 'Width', 'type': 'int', 'value': 10},
-        {'name': 'Height', 'type': 'int', 'value': 10},
-        {'name': 'Angle', 'type': 'int', 'value': 0}
+        {'name': 'X', 'type': 'float', 'value': 0},
+        {'name': 'Y', 'type': 'float', 'value': 0},
+        {'name': 'Width', 'type': 'float', 'value': 10},
+        {'name': 'Height', 'type': 'float', 'value': 10},
+        {'name': 'Angle', 'type': 'float', 'value': 0}
     ]},    
     {'name': 'Fitting functions', 'type': 'group', 'children': [
         {'name': 'Type', 'type': 'list', 'values': ['None','Gaussian',
