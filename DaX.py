@@ -44,14 +44,14 @@ params = [
     {'name': 'Read data sequence', 'type': 'group', 'children': [
         {'name': 'Directory', 'type': 'str', 'value': "/"},
         {'name': 'Select directory', 'type': 'action'},
-        {'name': 'Image width', 'type': 'int', 'value': 2048, 'decimals': 6},
-        {'name': 'Image height', 'type': 'int', 'value': 2048, 'decimals': 6},
+        {'name': 'Image width', 'type': 'int', 'value': 2048, 'decimals': 5},
+        {'name': 'Image height', 'type': 'int', 'value': 2048, 'decimals': 5},
         {'name': 'Binning','type': 'list', 'values': [1,2,4,8], 'value': 1},
         {'name': 'Read sequence', 'type': 'action'}
     ]},
     {'name': 'Spatial axes', 'type': 'group', 'children': [
-        {'name': 'Pixel size', 'type': 'float', 'value': 60.23e-3/2048},
-        {'name': 'Magnification', 'type': 'float', 'value': 1.0},
+        {'name': 'Pixel size', 'type': 'float', 'value': 60.23e-3/2048, 'decimals': 4},
+        {'name': 'Magnification', 'type': 'float', 'value': 1.0, 'decimals': 6},
         {'name': 'Hide axes', 'type': 'bool', 'value': False}
     ]},
     {'name': 'Time axis', 'type': 'group', 'children': [
