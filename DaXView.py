@@ -11,6 +11,8 @@ import numpy as np
 
 import scipy.special 
 import scipy.optimize 
+import scipy.interpolate
+import scipy.ndimage
 import FitFunctions as ff
 
 from pyqtgraph.Qt import QtCore, QtGui
@@ -62,6 +64,7 @@ class DaXView(pg.ImageView):
         
         self.scale=1.0
 
+        # Normalization and difference image settings
         self.normint=False
         self.diffimg=False     
         self.diffimgrel=False
@@ -72,6 +75,11 @@ class DaXView(pg.ImageView):
         self.diffRgn.hide()
         self.sigprox=pg.SignalProxy(self.diffRgn.sigRegionChanged, slot=self.normChanged)
         
+        # Drift correction settings
+        self.driftcorr=False
+        self.driftvec=np.zeros((2,2))
+
+        # Fitting region selecttion item
         self.fitRgn = pg.LinearRegionItem()
         self.fitRgn.setZValue(0)
         self.ui.roiPlot.addItem(self.fitRgn)
@@ -84,6 +92,7 @@ class DaXView(pg.ImageView):
         self.data = np.random.normal(size=(100, 200, 200))
         self.data += img * decay
         self.data += 2
+        self.corrdata=np.array([])
         
         ## Add time-varying signal
         sig = np.zeros(self.data.shape[0])
@@ -159,10 +168,10 @@ class DaXView(pg.ImageView):
             progress.setValue(i)
             QtGui.QApplication.processEvents()
             if progress.wasCanceled():
+                progress.close()
                 return
         progress.close()
         self.data=np.array(frames)
-        self.rawdata=np.copy(self.data)
         # Check time axis 
         npts=self.data.shape[0]
         if npts != len(self.tvals):
@@ -172,7 +181,7 @@ class DaXView(pg.ImageView):
             self.roiChanged()
         else:
             # Update image data only
-            self.setImage(self.data, xvals=self.tvals)
+            self.correctDrift()
 
     def setSpaceAxis(self,pixsize,mag,hide=False):
         self.scale=pixsize/mag
@@ -203,7 +212,8 @@ class DaXView(pg.ImageView):
             self.ui.roiPlot.setLabel('bottom',text='Time')
         else:
             self.ui.roiPlot.setLabel('bottom',text='Time'+' ('+unit+')')
-        self.setImage(self.data, xvals=self.tvals)
+        # Update image w. new time values
+        self.correctDrift()
     
     def setFitFunction(self,fittype,fitpars):      
         # Update the curve and show/hide depending on the type parameter
@@ -279,9 +289,8 @@ class DaXView(pg.ImageView):
         self.sigProcessingChanged.emit(self)
             
     def normalize(self, image):
-        if self.normint==False and self.diffimg==False:
-            processimg = image
-        else:
+        # Apply processing steps to image sequence 
+        if self.normint or self.diffimg:
             processimg = image.view(np.ndarray).copy()
 
             if self.normint==True:
@@ -290,7 +299,7 @@ class DaXView(pg.ImageView):
                 n.shape = n.shape + (1, 1)
                 # Divide each frame by its mean intensity
                 processimg /= n
-                        
+                
             if self.diffimg==True:
                 # Get reference image from selected region
                 (sind, start) = self.timeIndex(self.diffRgn.lines[0])
@@ -305,9 +314,49 @@ class DaXView(pg.ImageView):
                 else:
                     # Absolute difference image
                     processimg = processimg-n
+        else:
+            processimg = image
     
         return processimg
     
+    def correctDrift(self):
+        """ Correct for spatial drifting of the sample object during the acquisition.
+        The drift positions 'driftvec' specified for the frames in 'findex' are 
+        interpolated to determine a drift position for each frame in the sequence, 
+        which is then corrected.
+                
+        """
+        if self.driftcorr:
+
+            # Set drift corrected data as image sequence
+            findex=np.array([0.0,len(self.data)-1])
+            driftfx=scipy.interpolate.interp1d(findex,self.driftvec[:,0])
+            driftfy=scipy.interpolate.interp1d(findex,self.driftvec[:,1])
+            
+            # Check if corrected data array exists
+            if self.corrdata.shape!=self.data.shape:
+                self.corrdata=np.zeros(self.data.shape)
+    
+            # Keep user informed of progress 
+            progress=QtGui.QProgressDialog('Applying drift correction...','Abort',
+                            0,len(self.data),self)
+            progress.setWindowModality(QtCore.Qt.WindowModal)
+            progress.show()
+            for i in range(len(self.data)):
+                self.corrdata[i]=scipy.ndimage.shift(self.data[i],(driftfx(i),driftfy(i)))
+                # Update progress bar
+                progress.setValue(i)
+                QtGui.QApplication.processEvents()
+                if progress.wasCanceled():
+                    progress.close()
+                    return
+            progress.close()
+            self.setImage(self.corrdata, xvals=self.tvals)
+        else:
+            # Restore original data 
+            self.setImage(self.data, xvals=self.tvals)
+        return 
+
     def roiTypeSelected(self,roitype):
         if roitype == 'Total':
             self.roiIntX = False

@@ -66,6 +66,12 @@ params = [
         {'name': 'Difference image', 'type': 'bool', 'value': False},
         {'name': 'Relative difference', 'type': 'bool', 'value': False},
     ]},
+    {'name': 'Drift correction', 'type': 'group', 'children': [                                                                           
+        {'name': 'Get from ROI', 'type': 'action', 'tip': 'Get X/Y drift values from the ROI handle positions'},
+        {'name': 'X', 'type': 'float', 'value': 0, 'tip': 'Total X-axis spatial drift between first and last frames'},
+        {'name': 'Y', 'type': 'float', 'value': 0, 'tip': 'Total X-axis spatial drift between first and last frames'},
+        {'name': 'Correct drift', 'type': 'bool', 'value': False, 'tip': 'Apply correction'},
+    ]},
     {'name': 'ROI', 'type': 'group', 'children': [
         {'name': 'Type', 'type': 'list', 'values': ['None','Total','IntX','IntY','Tot. & IntX'], 
                                          'value': 'None'},
@@ -193,6 +199,18 @@ def change(param, changes):
             imv.diffimg=prt.child('Difference image').value()
             imv.diffimgrel=prt.child('Relative difference').value()
             imv.normChanged()
+        
+        if prt.name() == 'Drift correction':
+            if param.name()=='Get from ROI':
+                w=imv.roi.state['size'].x()
+                a=imv.roi.state['angle']*np.pi/180.0
+                prt.child('X').setValue(-w*np.cos(a))
+                prt.child('Y').setValue(-w*np.sin(a))
+            imv.driftvec[1,0]=prt.child('X').value()
+            imv.driftvec[1,1]=prt.child('Y').value()
+            if param.name()=='Correct drift':
+                imv.driftcorr=prt.child('Correct drift').value()
+                imv.correctDrift()
 
         if prt.name() == 'ROI':
             if param.name() == 'Type':
