@@ -16,6 +16,7 @@ import numpy as np
 import subprocess as sp
 import glob
 import os
+import os.path
 
 import DaXView
 
@@ -24,7 +25,7 @@ import sys,pdb
 __all__ = ['MovieExporter']
 
 class MovieExporter(Exporter):
-    Name = "Movie File (MP4, AVI)"
+    Name = "Movie File (MPEG, MP4)"
     allowCopy = False
     
     def __init__(self, item):
@@ -78,13 +79,15 @@ class MovieExporter(Exporter):
         
         # Get filename from user (the fileSaveDialog function calls export after finishing)
         if fileName is None:
-            self.fileSaveDialog(filter=['*.mp4','*.avi'])
+            self.fileSaveDialog(filter=['*.mpeg','*.mp4'])
             return
-        if fileName.endswith('.mp4') == False and fileName.endswith('.avi') == False:
-            fileName = fileName + '.mp4'
-
+        if fileName.endswith('.mpeg') == False and fileName.endswith('.mp4') == False:
+            fileName = fileName + '.mpeg'
+        # Get directory where video should go
+        dirName = os.path.dirname(fileName)
+        
         # Play entire sequence and store to temporary PNG files
-        progress=QtGui.QProgressDialog('Exporting frames...','Abort',
+        progress=QtGui.QProgressDialog('Exporting movie...','Abort',
                                        0,int(self.daxview.data.shape[0]*1.1))
         for i in range(self.daxview.data.shape[0]):
             # Set current frame
@@ -106,7 +109,7 @@ class MovieExporter(Exporter):
             bg[:,:,1] = color.green()
             bg[:,:,2] = color.red()
             bg[:,:,3] = color.alpha()
-            self.png = fn.makeQImage(bg, alpha=True)
+            self.png = fn.makeQImage(bg, alpha=False)
             
             ## set resolution of image:
             origTargetRect = self.getTargetRect()
@@ -122,26 +125,35 @@ class MovieExporter(Exporter):
                 self.setExportMode(False)
             painter.end()
             # Send to png file
-            pngFile='temp_'+'{:03d}'.format(i)+'.png'
+            pngFile=dirName+'/temp_'+'{:03d}'.format(i)+'.png'
             self.png.save(pngFile)
             progress.setValue(i)
+            QtGui.QApplication.processEvents()
             if progress.wasCanceled():
                 # Clean-up PNGs
                 rmfiles=glob.glob('temp_*.png')
                 for f in rmfiles:
                     os.remove(f)
+                progress.close()
                 return
+        progress.close()
 
-        # Convert PNGs to movie
-        sp.call(['ffmpeg', '-framerate', str(self.params.param('frame rate').value()),
-                           '-y','-loglevel','quiet',
-                           '-i', 'temp_%03d.png', 
-                           fileName])
+        # Convert PNGs to movie with FFMPEG
+        if fileName.endswith('mpeg'):
+            codec='mpeg2video'
+        else:
+            codec='libx264'
+        sp.call(['ffmpeg', '-r', str(self.params.param('frame rate').value()),
+                           '-i', dirName+'/temp_%03d.png',
+                           '-b:v', '1000K',
+                           '-c:v', codec,
+                           '-vframes', str(self.daxview.data.shape[0]), 
+                           '-y', fileName])
         # Clean-up PNGs
-        rmfiles=glob.glob('temp_*.png')
+        rmfiles=glob.glob(dirName+'/temp_*.png')
         for f in rmfiles:
             os.remove(f)
-        progress.close()
+        return
     
 MovieExporter.register()        
         
